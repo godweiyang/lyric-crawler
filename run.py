@@ -43,6 +43,9 @@ def main():
     album_dic = defaultdict(list)
 
     def check(songname, albumname):
+        if singer not in songname or '-' not in songname:
+            return False
+        
         if albumname in album_dic:
             for song in album_dic[albumname]:
                 if songname in song[0]:
@@ -54,7 +57,7 @@ def main():
             if '周大侠' in songname:
                 return True
         
-        song_remove = ['Live', '醇享版', '纯音乐']
+        song_remove = ['Live', '醇享版', '纯音乐', '暂无歌词']
         album_remove = ['Live', '演唱会', '音乐会']
         for sn in song_remove:
             if sn in songname:
@@ -75,12 +78,14 @@ def main():
             print('总共下载{}首歌词！'.format(counts))
             break
         for lyric in list_lyric:
-            content = re.sub(r'\\n ', '\n', lyric['content'])
-            songname = content.split('\n')[0]
-            albumname = lyric['albumname']
+            content = re.sub(r'\\n ', '\n', lyric['content']).strip()
+            songname = content.split('\n')[0].strip()
+            albumname = lyric['albumname'].strip()
             if check(songname, albumname):
+                if len(albumname) == 0:
+                    albumname = '其它'
                 album_dic[albumname].append((songname, content))
-                print(albumname + "\n  " + songname)
+                print(albumname + '\n  ' + songname)
             
     album_list = sorted(album_dic.items(), key=lambda d: len(d[1]), reverse=True)
 
@@ -90,7 +95,7 @@ def main():
         f_album.write(album[0] + '\n')
         for song in album[1]:
             f_album.write('  ' + song[0] + '\n')
-            f_lyric.write(song[1].strip())
+            f_lyric.write(song[1])
             f_lyric.write('\n----------------------------------------------\n')
     f_lyric.close()
     f_album.close()
